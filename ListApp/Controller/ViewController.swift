@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate{
+class ViewController: UIViewController{
     
     var alertController = UIAlertController()
     @IBOutlet weak var tableView: UITableView!
@@ -23,17 +23,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCell(withIdentifier: "defaultcell", for: indexPath)
-        cell.textLabel?.text = data[indexPath.row]
-        return cell
+    @IBAction func didRemoveBarButtonItemTapped(_ sender: UIBarButtonItem){
+        presentAlert(title: "UYARI!",
+                     message: "listedeki bütün öğeleri silmek istediğinize emin misiniz?",
+                     defaultButtonTitle: "evet",
+                     defaultButtonHandler: {_  in
+            self.data.removeAll()
+            self.tableView.reloadData()
+        },
+                     cancelButtonTitle: "vazgeç")
+      
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
-        
-    }
-    
     @IBAction func didAddBarButtonItemTapped(_ sender:UIBarButtonItem){
         
         presentAddAlert()
@@ -41,31 +41,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     
     func presentAddAlert(){
-        
-        /* let alertController = UIAlertController(title: "yeni eleman ekle", message: nil, preferredStyle: .alert)
-         
-         let defaultButton = UIAlertAction(title: "ekle", style: .default){_ in
-         
-         let text = alertController.textFields?.first?.text
-         if text != ""{
-         self.data.append((text)!)
-         self.tableView.reloadData()
-         }else{
-         self.presentWarningAlert()
-         
-         }
-         
-         
-         }
-         
-         let cancelButton = UIAlertAction(title: "vazgeç", style: .cancel)
-         
-         alertController.addTextField()
-         
-         alertController.addAction(defaultButton)
-         alertController.addAction(cancelButton)
-         
-         present(alertController, animated: true)*/
         
         presentAlert(title: "yeni eleman ekle",
                      message: nil,
@@ -122,6 +97,56 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         alertController.addAction(cancelButton)
         present(alertController, animated: true)
         
+    }
+    
+}
+extension ViewController : UITableViewDataSource, UITableViewDelegate{
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "defaultcell", for: indexPath)
+        cell.textLabel?.text = data[indexPath.row]
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return data.count
+        
+    }
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .normal, title: "sil") { _, _, _ in
+            
+            self.data.remove(at: indexPath.row)
+            tableView.reloadData()
+        }
+        deleteAction.backgroundColor = .systemRed
+        
+        let editAction = UIContextualAction(style: .normal, title: "düzenle"){_,_,_ in
+            
+            
+            self.presentAlert(title: "elemanı düzenle",
+                         message: nil,
+                         defaultButtonTitle: "düzenle",
+                         defaultButtonHandler: { _ in
+                let text = self.alertController.textFields?.first?.text
+                if text != ""{
+                    self.data[indexPath.row]=text!
+                    self.tableView.reloadData()
+                }else{
+                    self.presentWarningAlert()
+                    
+                }
+            },
+                         cancelButtonTitle: "vazgeç",isTextFieldAvailable: true)
+
+            
+            
+            
+        }
+        
+        let config = UISwipeActionsConfiguration(actions: [deleteAction,editAction])
+        
+        return config
     }
     
 }
